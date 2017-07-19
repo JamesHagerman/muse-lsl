@@ -34,20 +34,23 @@ class Muse():
         """Connect to the device"""
 
         if self.backend == 'gatt':
+            print('Using gatt backend')
             self.interface = self.interface or 'hci0'
             self.adapter = pygatt.GATTToolBackend(self.interface)
         else:
+            print('Using bgapi backend')
             self.adapter = pygatt.BGAPIBackend(serial_port=self.interface)
 
-        self.adapter.start()
+        self.adapter.start(False)
 
         if self.address is None:
+            
             address = self.find_muse_address()
             if address is None:
                 raise(ValueError("Can't find Muse Device"))
             else:
                 self.address = address
-        self.device = self.adapter.connect(self.address)
+        self.device = self.adapter.connect(self.address, 20)
 
         # subscribes to EEG stream
         if self.eeg:
@@ -63,6 +66,7 @@ class Muse():
 
     def find_muse_address(self):
         """look for ble device with a muse in the name"""
+        print('Looking for Muse devices...')
         devices = []
         list_devices = self.adapter.scan(timeout=10.5)
         for device in list_devices:
